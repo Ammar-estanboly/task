@@ -10,4 +10,9 @@ class Product extends Model
     use HasFactory;
     protected $fillable =['name','image','description'];
 
+    //user realtion
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'prouducts_users');
+    }//end users
 }

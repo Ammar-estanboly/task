@@ -51,4 +51,9 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'prouducts_users');
+    }//end products
+
 }
