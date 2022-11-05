@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Traits\HelperTrait;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -17,15 +18,17 @@ class AuthController extends Controller
     //register
 
     public function register(RegisterRequest $request){
-         try{
+        try{
                 DB::beginTransaction();
                 $user =User::create($request->all());
                 $token = $user->createToken('LaravelAuthApp')->accessToken;
+                $role = Role::findByName('User','api');
+                $user->assignRole($role);
                 DB::commit();
-                return $this->customresponseformat('You are logged in successfully',$token);
+                return $this->customresponseformat('You are register in successfully',$token);
 
-            } catch(Exception $e){
-                return $this->customresponseformat('Login failed system error',[],404);
+           } catch(Exception $e){
+                return $this->customresponseformat(' register failed system error',[],404);
             }//end catch
     }//end function register
 

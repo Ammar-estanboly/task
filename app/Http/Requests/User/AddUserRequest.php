@@ -38,6 +38,7 @@ class AddUserRequest extends FormRequest
                              'regex:/^[0]+[0-9]{9}$/',
                              'digits:10',
                              'unique:users,phone_number'],
+            'role_id' =>'required|exists:roles,id'
         ];
     }//end role function
 }

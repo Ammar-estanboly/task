@@ -13,18 +13,45 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\HelperTrait;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     use HelperTrait;
+
+    public function __construct()
+    {
+        $this->middleware('permission:show-profile')->only(['show_profile']);
+        $this->middleware('permission:show-user')->only(['show_user_profile']);
+        $this->middleware('permission:change-password')->only(['change_password']);
+        $this->middleware('permission:show-your-products')->only(['show_your_products']);
+        $this->middleware('permission:show-user-products')->only(['show_user_product']);
+        $this->middleware('permission:assign-product')->only(['assign']);
+        $this->middleware('permission:add-user')->only(['add']);
+        $this->middleware('permission:update-user')->only(['update']);
+        $this->middleware('permission:delete-user')->only(['delete']);
+
+    }
     //
 
     public function show_profile(){
+
         $user =auth('api')->user();
-        return $this->customresponseformat('user profile information',$user);
+        return $this->customresponseformat('profile information',$user);
+
     }//end show_profile
 
+
+    public function show_user_profile($id){
+
+        $user =User::findOrfail($id);
+        return $this->customresponseformat('user profile information',$user);
+    }//end show_user_profile
+
+
+
     public function change_password(ChangePasswordRequest $request){
+
         $user = auth('api')->user();
         $check = Hash::check($request->old_password, $user->password);
 
@@ -39,16 +66,14 @@ class UserController extends Controller
 
     }//end change_password
 
-    public function user_products($id){
-        $user = User::find($id);
-        if($user){
-            $product = $user->products()->paginate();
-            return $this->customresponseformat('user products',$product);
-        }
-        return $this->customresponseformat('user not found',[]);
-    }//end user_products
+    public function show_your_products(){
+        $user = auth('api')->user();
+        $product = $user->products()->paginate();
+        return $this->customresponseformat('user products',$product);
 
-    public function assign(AssignUserPRoductRequest $request){
+    }//end user_your_products
+
+    public function assign(AssignUserPRoductRequest $request){//assign product to user
 
         $user = User::find($request->id);
         $user->products()->sync($request->product_id);
@@ -59,6 +84,8 @@ class UserController extends Controller
     public function add(AddUserRequest $request){
 
         $user =User::create($request->all());
+        $role =Role::findById($request->role_id,'api');
+        $user->assignRole($role);
         return  $this->customresponseformat('added user successfully',$user);
 
     }// end add
@@ -79,13 +106,19 @@ class UserController extends Controller
                              'regex:/^[0]+[0-9]{9}$/',
                              'digits:10',
                              'unique:users,phone_number,'.$user->id],
+            'role_id' =>'required|exists:roles,id'
 
         ]);
 
         if ($validator->fails()) {
             return $this->customresponseformat('validation error',$validator->errors());
         }
+
         $user->update($request->all());
+        $role = $user->roles()->first();
+        $user->removeRole($role);
+        $new_role =Role::findById($request->role_id,'api');
+        $user->assignRole($new_role);
         return $this->customresponseformat('update user successfully', $user);
 
 
@@ -93,6 +126,7 @@ class UserController extends Controller
 
 
     public function show_user_product($id){
+
         $user = User::findOrFail($id);
         $products = $user->products()->paginate();
         return $this->customresponseformat('user products',$products);

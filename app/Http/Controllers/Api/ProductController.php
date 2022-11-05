@@ -14,6 +14,15 @@ class ProductController extends Controller
 {
     //
     use FileTrait,HelperTrait;
+    public function __construct()
+    {
+        $this->middleware('permission:add-product')->only(['add']);
+        $this->middleware('permission:show-products')->only(['show']);
+        $this->middleware('permission:show-product')->only(['show_product']);
+        $this->middleware('permission:edit-product')->only(['edit']);
+        $this->middleware('permission:delete-product')->only(['delete']);
+
+    }
 
     public function add(ProductRequest $request){
 
@@ -27,7 +36,6 @@ class ProductController extends Controller
     }//end function add product
 
     public function show(){
-
         $product = Product::paginate();
         return $this->customresponseformat('show all products',$product);
 
@@ -71,8 +79,8 @@ class ProductController extends Controller
             return $this->customresponseformat('delete succssufly',[]);
         }
         return $this->customresponseformat('product not found',[],404);
-}
+       }//end delete
 
 
 
-}
+}//end class
