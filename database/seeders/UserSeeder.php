@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
              'last_name' =>  'ali',
              'email' => 'admin@gmail.com',
              'password' => '12345678',
+             'phone_number' => '0976578094'
          ]);
          $user1->assignRole($role1);
          $role2= Role::where('name','User')->get();
@@ -31,6 +32,8 @@ class UserSeeder extends Seeder
              'last_name' =>  'ammar',
              'email' => 'ammar@gmail.com',
              'password' => '12345678',
+             'phone_number' => '0976578095'
+
 
          ]);
          $user2->assignRole($role2);
