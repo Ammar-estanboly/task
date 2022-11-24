@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
         try{
             DB::beginTransaction();
             $user =User::create($request->all());
-            $role = Role::findByName('User','api');
+            $role = Role::findByName('User','web');
             $user->assignRole($role);
             Auth::login($user);
             DB::commit();

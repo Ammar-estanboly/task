@@ -76,7 +76,7 @@ class UserController extends Controller
     public function assign(AssignUserPRoductRequest $request){//assign product to user
 
         $user = User::find($request->id);
-        $user->products()->sync($request->product_id);
+        $user->products()->attach($request->product_id);
         return $this->customresponseformat('Assign product to user successfully',$user);
     }//end assign
 

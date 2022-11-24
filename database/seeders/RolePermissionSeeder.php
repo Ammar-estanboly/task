@@ -39,15 +39,30 @@ class RolePermissionSeeder extends Seeder
         foreach($permissions as $permission){
            Permission::create(['name' => $permission,'guard_name'=>'api']);
             }
+
+        foreach($permissions as $permission){
+                Permission::create(['name' => $permission,'guard_name'=>'web']);
+                 }
         // create roles and assign existing permissions
         $role1 = Role::create(['name' => 'Admin','guard_name'=>'api']);
+        $role11 = Role::create(['name' => 'Admin','guard_name'=>'web']);
         foreach($permissions as $permission){
                 $role1->givePermissionTo($permission);
                }
+
+        foreach($permissions as $permission){
+                $role11->givePermissionTo($permission);
+               }
+
         $role2 = Role::create(['name' => 'User','guard_name'=>'api']);
+        $role22 = Role::create(['name' => 'User','guard_name'=>'web']);
         $role2->givePermissionTo('show-profile');
         $role2->givePermissionTo('change-password');
         $role2->givePermissionTo('show-your-products');
+
+        $role22->givePermissionTo('show-profile');
+        $role22->givePermissionTo('change-password');
+        $role22->givePermissionTo('show-your-products');
 
     }
 }

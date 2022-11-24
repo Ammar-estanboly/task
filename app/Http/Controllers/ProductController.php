@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\EditProductRequest;
@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Traits\HelperTrait;
 use App\Traits\FileTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -16,13 +17,19 @@ class ProductController extends Controller
     use FileTrait,HelperTrait;
     public function __construct()
     {
-        $this->middleware('permission:add-product')->only(['add']);
+        $this->middleware('permission:add-product')->only(['add','show_add_form']);
         $this->middleware('permission:show-products')->only(['show']);
         $this->middleware('permission:show-product')->only(['show_product']);
-        $this->middleware('permission:edit-product')->only(['edit']);
+        $this->middleware('permission:edit-product')->only(['edit','show_edit']);
         $this->middleware('permission:delete-product')->only(['delete']);
 
+    }//end construct
+
+    public function show_add_form(){
+
+        return view('dashboard.product.add_product');
     }
+
 
     public function add(ProductRequest $request){
 
@@ -32,24 +39,23 @@ class ProductController extends Controller
             'image' => $path,
             'description' => $request->description,
         ]);
-        return $this->customresponseformat('create product succssfly',$product);
+        toastr()->success("create product succssfly");
+        return redirect()->route('show-products');
+
     }//end function add product
 
     public function show(){
-        $product = Product::paginate();
-        return $this->customresponseformat('show all products',$product);
-
+        $products = Product::paginate(4);
+        return view('dashboard.product.show_products',compact('products'));
     }//end show
 
-    public function show_product($id){
+    public function show_edit($id){
+        $product = Product::findOrfail($id);
+        return view('dashboard.product.edit_product',compact('product'));
 
-        $product = Product::find($id);
-        if($product){
-            return $this->customresponseformat('product info',$product);
-        }
-        return $this->customresponseformat('product not found',[],404);
 
-    }//end show_product
+    }//end function show_edit
+
 
     public function edit(EditProductRequest $request){
 
@@ -60,26 +66,34 @@ class ProductController extends Controller
 
         $product= Product::find($request->id);
         if($this->checkfile($request,'image',$product)){
-
             $image =  $this->upload($request->file('image'),'images/product');
             $data['image'] = $image;
 
         }
 
         $product->update($data);
-        return $this->customresponseformat('updated product succssfly',$product);
+        toastr()->success("update product succssfly");
+        return redirect()->route('show-products');
 
     }// end edit
 
-    public function delete($id){
-        $product = Product::find($id);
-        if($product){
-            $this->deletefile($product->image);
-            $product->delete();
-            return $this->customresponseformat('delete succssufly',[]);
+
+    public function delete(Request $request){
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required'
+        ]);
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
         }
-        return $this->customresponseformat('product not found',[],404);
-       }//end delete
+
+
+        $product = Product::findOrFail($request->product_id);
+        $product->delete();
+        $this->deletefile($product->image);
+        toastr()->success("delete product succses");
+        return  redirect()->route('show-products');
+
+    }//end delete
 
 
 
